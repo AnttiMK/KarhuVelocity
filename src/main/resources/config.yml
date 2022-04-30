@@ -1,0 +1,5 @@
+Prefix: '&7(&b&l%server%&7) '
+AlertsMessage: '&f%player% &7failed &b%check% &7[x&b%vl%&7]'
+alerts:
+  enabled: '&aYou enabled Karhu velocity alerts'
+  disabled: '&cYou disabled Karhu velocity alerts'
