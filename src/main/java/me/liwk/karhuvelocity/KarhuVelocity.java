@@ -102,7 +102,7 @@ public final class KarhuVelocity {
     @Subscribe
     public void onMessageReceive(PluginMessageEvent e) {
 
-        if (e.getIdentifier().getId().equalsIgnoreCase("BungeeCord") && e.getSource() instanceof ServerConnection) {
+        if (e.getIdentifier().getId().equalsIgnoreCase("KarhuProxy") && e.getSource() instanceof ServerConnection) {
             try {
                 DataInputStream in = new DataInputStream(new ByteArrayInputStream(e.getData()));
                 String subChannel = in.readUTF();
