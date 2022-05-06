@@ -51,7 +51,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 @Data
-@Plugin(id = "karhuvelocity", name = "KarhuVelocity", authors = {"LIWK"}, version = "1.0.0")
+@Plugin(id = "karhuvelocity", name = "KarhuVelocity", authors = {"LIWK"}, version = "1.1.0-SNAPSHOT")
 public final class KarhuVelocity {
 
     private static KarhuVelocity instance;
