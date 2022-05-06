@@ -28,9 +28,10 @@ import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.ServerConnection;
+import com.velocitypowered.api.proxy.messages.LegacyChannelIdentifier;
+import com.velocitypowered.api.proxy.messages.MinecraftChannelIdentifier;
 import lombok.Data;
 import lombok.Getter;
-import lombok.var;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import ninja.leaping.configurate.ConfigurationNode;
@@ -85,7 +86,7 @@ public final class KarhuVelocity {
 
         var config = loadConfig();
 
-        if (!config.isPresent()) {
+        if (config.isEmpty()) {
             logger.warn("Config file could not be loaded.");
             return;
         }
@@ -115,12 +116,14 @@ public final class KarhuVelocity {
         this.alertsDisabled = this.config.getString("alerts.disabled");
 
         this.saveConfig();
+
+        server.getChannelRegistrar().register(new LegacyChannelIdentifier("KarhuProxy"));
+        server.getChannelRegistrar().register(MinecraftChannelIdentifier.create("karhu", "proxy"));
     }
 
     @Subscribe
     public void onMessageReceive(PluginMessageEvent e) {
-
-        if (e.getIdentifier().getId().equalsIgnoreCase("KarhuProxy") && e.getSource() instanceof ServerConnection) {
+        if (e.getSource() instanceof ServerConnection) {
             try {
                 DataInputStream in = new DataInputStream(new ByteArrayInputStream(e.getData()));
                 String subChannel = in.readUTF();
