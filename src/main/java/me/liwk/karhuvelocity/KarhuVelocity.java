@@ -28,7 +28,6 @@ import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.ServerConnection;
-import com.velocitypowered.api.proxy.messages.LegacyChannelIdentifier;
 import com.velocitypowered.api.proxy.messages.MinecraftChannelIdentifier;
 import lombok.Data;
 import lombok.Getter;
@@ -117,7 +116,6 @@ public final class KarhuVelocity {
 
         this.saveConfig();
 
-        server.getChannelRegistrar().register(new LegacyChannelIdentifier("KarhuProxy"));
         server.getChannelRegistrar().register(MinecraftChannelIdentifier.create("karhu", "proxy"));
     }
 
@@ -128,11 +126,8 @@ public final class KarhuVelocity {
                 DataInputStream in = new DataInputStream(new ByteArrayInputStream(e.getData()));
                 String subChannel = in.readUTF();
                 if (subChannel.equals("karhu:bban")) {
-
-                    this.logger.info("Received: " + Arrays.toString(e.getData()));
-
                     String command = in.readUTF();
-                    this.logger.info("Received an order to execute the command '/" + command + "'. Executing...");
+                    this.logger.info("Executing command \"" + command + "\"...");
                     this.server.getCommandManager().executeAsync(this.server.getConsoleCommandSource(), command);
                 }
 
