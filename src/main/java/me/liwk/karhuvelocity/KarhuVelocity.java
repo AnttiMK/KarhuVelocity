@@ -126,12 +126,14 @@ public final class KarhuVelocity {
                 DataInputStream in = new DataInputStream(new ByteArrayInputStream(e.getData()));
                 String subChannel = in.readUTF();
                 if (subChannel.equals("karhu:bban")) {
+                    e.setResult(PluginMessageEvent.ForwardResult.handled());
                     String command = in.readUTF();
                     this.logger.info("Executing command \"" + command + "\"...");
                     this.server.getCommandManager().executeAsync(this.server.getConsoleCommandSource(), command);
                 }
 
                 if (subChannel.equals("karhu:alert")) {
+                    e.setResult(PluginMessageEvent.ForwardResult.handled());
                     if (!(e.getSource() instanceof ServerConnection)) {
                         return;
                     }
