@@ -13,7 +13,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <lombok.version>1.18.24</lombok.version>
+        <lombok.version>1.18.36</lombok.version>
         <velocity.version>3.1.1</velocity.version>
     </properties>
 
@@ -23,9 +23,9 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.10.1</version>
+                <version>3.13.0</version>
                 <configuration>
-                    <release>11</release>
+                    <release>21</release>
                     <annotationProcessorPaths>
                         <path>
                             <groupId>com.velocitypowered</groupId>
@@ -43,7 +43,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.3.0</version>
+                <version>3.6.0</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -55,6 +55,17 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>3.1.1</version>
+                <configuration>
+                    <tagNameFormat>@{project.version}</tagNameFormat>
+                    <autoVersionSubmodules>true</autoVersionSubmodules>
+                    <scmReleaseCommitComment>Release @{releaseLabel}</scmReleaseCommitComment>
+                    <scmDevelopmentCommitComment>Back to snapshot for development</scmDevelopmentCommitComment>
+                </configuration>
             </plugin>
         </plugins>
         <resources>
@@ -90,4 +101,9 @@
             <scope>provided</scope>
         </dependency>
     </dependencies>
+
+    <scm>
+        <connection>scm:git:git@github.com:AnttiMK/KarhuVelocity.git</connection>
+        <developerConnection>scm:git:git@github.com:AnttiMK/KarhuVelocity.git</developerConnection>
+  </scm>
 </project>
