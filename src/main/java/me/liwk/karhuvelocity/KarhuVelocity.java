@@ -57,6 +57,7 @@ public final class KarhuVelocity {
     private final ProxyServer server;
     private final Logger logger;
     private final Path dataDirectory;
+    private static final MinecraftChannelIdentifier IDENTIFIER = MinecraftChannelIdentifier.create("karhu", "proxy");
 
     private ConfigurationNode config;
     @Getter
@@ -116,11 +117,15 @@ public final class KarhuVelocity {
 
         this.saveConfig();
 
-        server.getChannelRegistrar().register(MinecraftChannelIdentifier.create("karhu", "proxy"));
+        server.getChannelRegistrar().register(IDENTIFIER);
     }
 
     @Subscribe
     public void onMessageReceive(PluginMessageEvent e) {
+        if (!IDENTIFIER.equals(e.getIdentifier())) {
+            return;
+        }
+
         if (e.getSource() instanceof ServerConnection) {
             try {
                 DataInputStream in = new DataInputStream(new ByteArrayInputStream(e.getData()));
