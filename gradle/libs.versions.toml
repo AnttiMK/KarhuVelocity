@@ -1,5 +1,5 @@
 [versions]
-velocity = "3.3.0-SNAPSHOT"
+velocity = "3.4.0-SNAPSHOT"
 lombok = "1.18.36"
 
 [libraries]
