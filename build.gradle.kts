@@ -1,5 +1,6 @@
 plugins {
     `java-library`
+    id("xyz.jpenilla.run-velocity") version "2.3.1"
 }
 
 group = "me.liwk"
@@ -28,10 +29,16 @@ java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(21))
 }
 
-tasks.withType<JavaCompile> {
-    options.encoding = "UTF-8"
-}
+tasks {
+    withType<JavaCompile> {
+        options.encoding = "UTF-8"
+    }
 
-tasks.withType<Javadoc> {
-    options.encoding = "UTF-8"
+    withType<Javadoc> {
+        options.encoding = "UTF-8"
+    }
+
+    runVelocity {
+        velocityVersion("3.3.0-SNAPSHOT")
+    }
 }
