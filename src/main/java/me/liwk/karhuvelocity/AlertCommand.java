@@ -25,18 +25,24 @@ import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import java.util.UUID;
 
 public class AlertCommand implements SimpleCommand {
+
+    private final KarhuVelocity plugin;
+
+    public AlertCommand(KarhuVelocity plugin) {
+        this.plugin = plugin;
+    }
+
     @Override
     public void execute(Invocation invocation) {
-        if (invocation.source() instanceof Player) {
-            Player player = (Player) invocation.source();
+        if (invocation.source() instanceof Player player) {
             UUID uuid = player.getUniqueId();
 
             if (AlertManager.ALERTS.containsKey(uuid)) {
                 AlertManager.ALERTS.remove(uuid);
-                player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize(KarhuVelocity.getInstance().getAlertsDisabled()));
+                player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize(plugin.getAlertsDisabled()));
             } else {
                 AlertManager.ALERTS.put(uuid, true);
-                player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize(KarhuVelocity.getInstance().getAlertsEnabled()));
+                player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize(plugin.getAlertsEnabled()));
             }
         }
     }
