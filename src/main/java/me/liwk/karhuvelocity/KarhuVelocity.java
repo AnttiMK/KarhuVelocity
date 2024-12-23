@@ -27,6 +27,7 @@ import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.ProxyServer;
 import lombok.Getter;
+import me.liwk.karhuvelocity.commands.AlertCommand;
 import me.liwk.karhuvelocity.messaging.PluginMessageHandler;
 import me.liwk.karhuvelocity.storage.FileConfiguration;
 import org.slf4j.Logger;
