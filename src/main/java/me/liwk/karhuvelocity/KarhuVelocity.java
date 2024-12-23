@@ -18,6 +18,8 @@
 
 package me.liwk.karhuvelocity;
 
+import com.google.common.io.ByteArrayDataInput;
+import com.google.common.io.ByteStreams;
 import com.google.inject.Inject;
 import com.velocitypowered.api.command.CommandManager;
 import com.velocitypowered.api.command.CommandMeta;
@@ -35,9 +37,6 @@ import me.liwk.karhuvelocity.storage.FileConfiguration;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.slf4j.Logger;
 
-import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -88,7 +87,7 @@ public final class KarhuVelocity {
 
         if (e.getSource() instanceof ServerConnection) {
             try {
-                DataInputStream in = new DataInputStream(new ByteArrayInputStream(e.getData()));
+                ByteArrayDataInput in = ByteStreams.newDataInput(e.getData());
                 String subChannel = in.readUTF();
                 if (subChannel.equals("karhu:bban")) {
                     String command = in.readUTF();
@@ -130,7 +129,7 @@ public final class KarhuVelocity {
                     }
                 }
 
-            } catch (IllegalStateException | IOException ex) {
+            } catch (IllegalStateException ex) {
                 logger.error("Could not do anything with this PluginMessage! (" + String.format("'%s', %s", e.getIdentifier(), Arrays.toString(e.getData())) + ")", ex);
             }
         }
