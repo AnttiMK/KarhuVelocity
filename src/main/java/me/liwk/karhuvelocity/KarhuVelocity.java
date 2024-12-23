@@ -32,8 +32,7 @@ import com.velocitypowered.api.proxy.ServerConnection;
 import com.velocitypowered.api.proxy.messages.MinecraftChannelIdentifier;
 import lombok.Getter;
 import me.liwk.karhuvelocity.storage.FileConfiguration;
-import net.kyori.adventure.text.TextComponent;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.slf4j.Logger;
 
 import java.io.ByteArrayInputStream;
@@ -55,9 +54,6 @@ public final class KarhuVelocity {
 
     private FileConfiguration config;
 
-    @Getter
-    private String alertPrefix, alertMessage, alertsEnabled, alertsDisabled;
-
     @Inject
     private KarhuVelocity(ProxyServer server, Logger logger, @DataDirectory Path dataDirectory) {
         this.server = server;
@@ -68,7 +64,12 @@ public final class KarhuVelocity {
     @Subscribe
     public void onProxyInitialization(ProxyInitializeEvent event) {
         this.config = new FileConfiguration(this);
-        config.loadConfig();
+        try {
+            config.load();
+        } catch (Exception e) {
+            logger.error("Failed to load plugin configuration, plugin will be disabled.", e);
+            return;
+        }
 
         CommandManager commandManager = server.getCommandManager();
         CommandMeta meta = commandManager.metaBuilder("alerts").plugin(this).build();
@@ -103,29 +104,27 @@ public final class KarhuVelocity {
                     if (address == null) return;
 
                     String[] alertData = in.readUTF().split("#");
+                    final String check = alertData[0];
+                    final String vl = alertData[1];
+                    final String player = alertData[2];
 
                     Optional<Player> cheater = server.getPlayer(alertData[2]);
 
                     if (cheater.isPresent() && cheater.get().getCurrentServer().isPresent()) {
                         String flagServer = cheater.get().getCurrentServer().get().getServerInfo().getName();
 
-                        TextComponent alertMessage = LegacyComponentSerializer.legacy('&')
-                                .deserialize(this.alertMessage.replaceAll("%server%", flagServer))
-                                .append(LegacyComponentSerializer.legacy('&')
-                                        .deserialize(this.alertPrefix
-                                                .replaceAll("%check%", alertData[0])
-                                                .replaceAll("%vl%", alertData[1])
-                                                .replaceAll("%player%", alertData[2])));
-
                         for (Player loopPlayer : this.server.getAllPlayers()) {
                             Optional<ServerConnection> currentServer = loopPlayer.getCurrentServer();
                             currentServer.ifPresent(server -> {
                                 if (AlertManager.ALERTS.containsKey(loopPlayer.getUniqueId()) && !server.getServerInfo().getName().equals(flagServer)) {
-                                    loopPlayer.sendMessage(alertMessage);
+                                    loopPlayer.sendMessage(MiniMessage.miniMessage().deserialize(config.get().getPrefix().replaceAll("%server%", flagServer))
+                                            .append(MiniMessage.miniMessage().deserialize(config.get().getAlertMessage()
+                                                    .replaceAll("%check%", check)
+                                                    .replaceAll("%vl%", vl)
+                                                    .replaceAll("%player%", player))));
                                 }
                             });
                         }
-
                     } else {
                         this.logger.error("Karhu couldn't find the player!");
                     }

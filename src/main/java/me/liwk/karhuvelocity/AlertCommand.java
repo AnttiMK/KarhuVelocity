@@ -20,7 +20,6 @@ package me.liwk.karhuvelocity;
 
 import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.proxy.Player;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 
 import java.util.UUID;
 
@@ -39,10 +38,10 @@ public class AlertCommand implements SimpleCommand {
 
             if (AlertManager.ALERTS.containsKey(uuid)) {
                 AlertManager.ALERTS.remove(uuid);
-                player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize(plugin.getAlertsDisabled()));
+                player.sendRichMessage(plugin.getConfig().get().getAlerts().getDisabled());
             } else {
                 AlertManager.ALERTS.put(uuid, true);
-                player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize(plugin.getAlertsEnabled()));
+                player.sendRichMessage(plugin.getConfig().get().getAlerts().getEnabled());
             }
         }
     }

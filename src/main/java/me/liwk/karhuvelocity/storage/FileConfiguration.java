@@ -19,51 +19,78 @@
 package me.liwk.karhuvelocity.storage;
 
 import me.liwk.karhuvelocity.KarhuVelocity;
+import me.liwk.karhuvelocity.storage.migrations.ConfigMigration;
+import me.liwk.karhuvelocity.storage.migrations.LegacyConfigMigration;
+import org.jetbrains.annotations.NotNull;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.ConfigurateException;
-import org.spongepowered.configurate.objectmapping.ConfigSerializable;
+import org.spongepowered.configurate.objectmapping.ObjectMapper;
+import org.spongepowered.configurate.serialize.SerializationException;
+import org.spongepowered.configurate.yaml.NodeStyle;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class FileConfiguration {
 
     private final KarhuVelocity plugin;
-    private KarhuVelocityConfig config;
+    private final YamlConfigurationLoader loader;
+    private final ObjectMapper<KarhuVelocityConfig> mapper;
+    private final AtomicReference<KarhuVelocityConfig> config;
 
-    public FileConfiguration(KarhuVelocity plugin) {
+    public FileConfiguration(final @NotNull KarhuVelocity plugin) {
         this.plugin = plugin;
-    }
+        this.config = new AtomicReference<>();
 
-    public void loadConfig() {
-        File configFile = new File(plugin.getDataDirectory().toFile(), "config.yml");
-        if (!configFile.exists()) {
-            try (var is = this.getClass().getClassLoader().getResourceAsStream("config.yml")) {
-                if (is == null) {
-                    throw new RuntimeException("Default config.yml was not found in the JAR, please report this");
-                }
-                Files.copy(is, configFile.toPath());
-            } catch (IOException e) {
-                throw new RuntimeException("Failed to copy default config.yml", e);
-            }
-        } else {
-            ConfigMigrator.tryMigrate(configFile, plugin);
-        }
+        this.loader = YamlConfigurationLoader.builder()
+                .path(plugin.getDataDirectory().resolve("config.yml"))
+                .nodeStyle(NodeStyle.BLOCK)
+                .indent(2)
+                .build();
 
-        YamlConfigurationLoader loader = YamlConfigurationLoader.builder().file(configFile).build();
-        CommentedConfigurationNode root;
         try {
-            root = loader.load();
-            config = root.get(KarhuVelocityConfig.class);
-        } catch (ConfigurateException e) {
-            throw new RuntimeException("Failed to load plugin configuration", e);
+            mapper = ObjectMapper.factory().get(KarhuVelocityConfig.class);
+        } catch (SerializationException e) {
+            throw new RuntimeException(e);
         }
+
     }
 
-    @ConfigSerializable
-    static class KarhuVelocityConfig {
+    public KarhuVelocityConfig get() {
+        return config.get();
+    }
 
+    public CommentedConfigurationNode applyMigrations() throws Exception {
+        final CommentedConfigurationNode root = this.loader.load();
+        final List<ConfigMigration> migrations = List.of(
+                new LegacyConfigMigration()
+        );
+
+        boolean migrated = false;
+        for (final ConfigMigration migration : migrations) {
+            if (migration.shouldMigrate(root)) {
+                migration.migrate(root, plugin.getLogger());
+                migrated = true;
+            }
+        }
+
+        if (migrated) {
+            this.loader.save(root);
+        }
+
+        return root;
+    }
+
+    public void load() throws Exception {
+        var configuration = this.mapper.load(this.applyMigrations());
+        this.save(configuration);
+        this.config.set(configuration);
+    }
+
+    public void save(final @NotNull KarhuVelocityConfig config) throws ConfigurateException {
+        var node = this.loader.createNode();
+        this.mapper.save(config, node);
+        this.loader.save(node);
     }
 }
