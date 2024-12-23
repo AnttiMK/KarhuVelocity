@@ -18,29 +18,20 @@
 
 package me.liwk.karhuvelocity;
 
-import com.google.common.io.ByteArrayDataInput;
-import com.google.common.io.ByteStreams;
 import com.google.inject.Inject;
 import com.velocitypowered.api.command.CommandManager;
 import com.velocitypowered.api.command.CommandMeta;
 import com.velocitypowered.api.event.Subscribe;
-import com.velocitypowered.api.event.connection.PluginMessageEvent;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
-import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
-import com.velocitypowered.api.proxy.ServerConnection;
-import com.velocitypowered.api.proxy.messages.MinecraftChannelIdentifier;
 import lombok.Getter;
+import me.liwk.karhuvelocity.messaging.PluginMessageHandler;
 import me.liwk.karhuvelocity.storage.FileConfiguration;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.slf4j.Logger;
 
-import java.net.InetSocketAddress;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.Optional;
 
 @Getter
 @Plugin(id = "karhuvelocity", name = "KarhuVelocity", authors = {"LIWK"}, version = "1.1.0-SNAPSHOT")
@@ -49,7 +40,6 @@ public final class KarhuVelocity {
     private final ProxyServer server;
     private final Logger logger;
     private final Path dataDirectory;
-    private static final MinecraftChannelIdentifier IDENTIFIER = MinecraftChannelIdentifier.create("karhu", "proxy");
 
     private FileConfiguration config;
 
@@ -70,65 +60,11 @@ public final class KarhuVelocity {
             return;
         }
 
+        PluginMessageHandler listener = new PluginMessageHandler(server, config, logger);
+        server.getEventManager().register(this, listener);
+
         CommandManager commandManager = server.getCommandManager();
         CommandMeta meta = commandManager.metaBuilder("alerts").plugin(this).build();
-        commandManager.register(meta, new AlertCommand(this));
-
-        server.getChannelRegistrar().register(IDENTIFIER);
-    }
-
-    @Subscribe
-    public void onMessageReceive(PluginMessageEvent e) {
-        if (!IDENTIFIER.equals(e.getIdentifier())) {
-            return;
-        }
-
-        e.setResult(PluginMessageEvent.ForwardResult.handled());
-
-        if (!(e.getSource() instanceof ServerConnection connection)) {
-            return;
-        }
-
-        try {
-            ByteArrayDataInput in = ByteStreams.newDataInput(e.getData());
-            String subChannel = in.readUTF();
-            if (subChannel.equals("karhu:bban")) {
-                String command = in.readUTF();
-                this.logger.info("Received command \"{}\" from server {}, executing...", command, connection.getServerInfo().getName());
-                this.server.getCommandManager().executeAsync(this.server.getConsoleCommandSource(), command);
-            }
-
-            if (subChannel.equals("karhu:alert")) {
-                InetSocketAddress address = connection.getServer().getServerInfo().getAddress();
-                if (address == null) return;
-
-                String[] alertData = in.readUTF().split("#");
-                final String check = alertData[0];
-                final String vl = alertData[1];
-                final String player = alertData[2];
-
-                Optional<Player> cheater = server.getPlayer(alertData[2]);
-
-                if (cheater.isPresent() && cheater.get().getCurrentServer().isPresent()) {
-                    String flagServer = cheater.get().getCurrentServer().get().getServerInfo().getName();
-
-                    for (Player loopPlayer : this.server.getAllPlayers()) {
-                        Optional<ServerConnection> currentServer = loopPlayer.getCurrentServer();
-                        currentServer.ifPresent(server -> {
-                            if (AlertManager.ALERTS.containsKey(loopPlayer.getUniqueId()) && !server.getServerInfo().getName().equals(flagServer)) {
-                                loopPlayer.sendMessage(MiniMessage.miniMessage().deserialize(config.get().getPrefix().replaceAll("%server%", flagServer))
-                                        .append(MiniMessage.miniMessage().deserialize(config.get().getAlertMessage()
-                                                .replaceAll("%check%", check)
-                                                .replaceAll("%vl%", vl)
-                                                .replaceAll("%player%", player))));
-                            }
-                        });
-                    }
-                }
-            }
-        } catch (Exception ex) {
-            logger.error("Could not do anything with this plugin message! (identifier: {}, message: {})",
-                    e.getIdentifier(), Arrays.toString(e.getData()), ex);
-        }
+        commandManager.register(meta, new AlertCommand(listener));
     }
 }

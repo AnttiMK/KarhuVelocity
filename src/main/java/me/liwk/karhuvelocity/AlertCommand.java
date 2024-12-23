@@ -20,29 +20,20 @@ package me.liwk.karhuvelocity;
 
 import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.proxy.Player;
-
-import java.util.UUID;
+import me.liwk.karhuvelocity.messaging.PluginMessageHandler;
 
 public class AlertCommand implements SimpleCommand {
 
-    private final KarhuVelocity plugin;
+    private final PluginMessageHandler listener;
 
-    public AlertCommand(KarhuVelocity plugin) {
-        this.plugin = plugin;
+    public AlertCommand(PluginMessageHandler listener) {
+        this.listener = listener;
     }
 
     @Override
     public void execute(Invocation invocation) {
         if (invocation.source() instanceof Player player) {
-            UUID uuid = player.getUniqueId();
-
-            if (AlertManager.ALERTS.containsKey(uuid)) {
-                AlertManager.ALERTS.remove(uuid);
-                player.sendRichMessage(plugin.getConfig().get().getAlerts().getDisabled());
-            } else {
-                AlertManager.ALERTS.put(uuid, true);
-                player.sendRichMessage(plugin.getConfig().get().getAlerts().getEnabled());
-            }
+            listener.toggleAlertsFor(player);
         }
     }
 
