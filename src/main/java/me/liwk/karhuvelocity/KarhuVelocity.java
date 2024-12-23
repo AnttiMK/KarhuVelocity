@@ -85,53 +85,50 @@ public final class KarhuVelocity {
 
         e.setResult(PluginMessageEvent.ForwardResult.handled());
 
-        if (e.getSource() instanceof ServerConnection) {
-            try {
-                ByteArrayDataInput in = ByteStreams.newDataInput(e.getData());
-                String subChannel = in.readUTF();
-                if (subChannel.equals("karhu:bban")) {
-                    String command = in.readUTF();
-                    this.logger.info("Executing command \"" + command + "\"...");
-                    this.server.getCommandManager().executeAsync(this.server.getConsoleCommandSource(), command);
-                }
+        if (!(e.getSource() instanceof ServerConnection connection)) {
+            return;
+        }
 
-                if (subChannel.equals("karhu:alert")) {
-                    if (!(e.getSource() instanceof ServerConnection)) {
-                        return;
-                    }
-                    InetSocketAddress address = ((ServerConnection) e.getSource()).getServer().getServerInfo().getAddress();
-                    if (address == null) return;
-
-                    String[] alertData = in.readUTF().split("#");
-                    final String check = alertData[0];
-                    final String vl = alertData[1];
-                    final String player = alertData[2];
-
-                    Optional<Player> cheater = server.getPlayer(alertData[2]);
-
-                    if (cheater.isPresent() && cheater.get().getCurrentServer().isPresent()) {
-                        String flagServer = cheater.get().getCurrentServer().get().getServerInfo().getName();
-
-                        for (Player loopPlayer : this.server.getAllPlayers()) {
-                            Optional<ServerConnection> currentServer = loopPlayer.getCurrentServer();
-                            currentServer.ifPresent(server -> {
-                                if (AlertManager.ALERTS.containsKey(loopPlayer.getUniqueId()) && !server.getServerInfo().getName().equals(flagServer)) {
-                                    loopPlayer.sendMessage(MiniMessage.miniMessage().deserialize(config.get().getPrefix().replaceAll("%server%", flagServer))
-                                            .append(MiniMessage.miniMessage().deserialize(config.get().getAlertMessage()
-                                                    .replaceAll("%check%", check)
-                                                    .replaceAll("%vl%", vl)
-                                                    .replaceAll("%player%", player))));
-                                }
-                            });
-                        }
-                    } else {
-                        this.logger.error("Karhu couldn't find the player!");
-                    }
-                }
-
-            } catch (IllegalStateException ex) {
-                logger.error("Could not do anything with this PluginMessage! (" + String.format("'%s', %s", e.getIdentifier(), Arrays.toString(e.getData())) + ")", ex);
+        try {
+            ByteArrayDataInput in = ByteStreams.newDataInput(e.getData());
+            String subChannel = in.readUTF();
+            if (subChannel.equals("karhu:bban")) {
+                String command = in.readUTF();
+                this.logger.info("Received command \"{}\" from server {}, executing...", command, connection.getServerInfo().getName());
+                this.server.getCommandManager().executeAsync(this.server.getConsoleCommandSource(), command);
             }
+
+            if (subChannel.equals("karhu:alert")) {
+                InetSocketAddress address = connection.getServer().getServerInfo().getAddress();
+                if (address == null) return;
+
+                String[] alertData = in.readUTF().split("#");
+                final String check = alertData[0];
+                final String vl = alertData[1];
+                final String player = alertData[2];
+
+                Optional<Player> cheater = server.getPlayer(alertData[2]);
+
+                if (cheater.isPresent() && cheater.get().getCurrentServer().isPresent()) {
+                    String flagServer = cheater.get().getCurrentServer().get().getServerInfo().getName();
+
+                    for (Player loopPlayer : this.server.getAllPlayers()) {
+                        Optional<ServerConnection> currentServer = loopPlayer.getCurrentServer();
+                        currentServer.ifPresent(server -> {
+                            if (AlertManager.ALERTS.containsKey(loopPlayer.getUniqueId()) && !server.getServerInfo().getName().equals(flagServer)) {
+                                loopPlayer.sendMessage(MiniMessage.miniMessage().deserialize(config.get().getPrefix().replaceAll("%server%", flagServer))
+                                        .append(MiniMessage.miniMessage().deserialize(config.get().getAlertMessage()
+                                                .replaceAll("%check%", check)
+                                                .replaceAll("%vl%", vl)
+                                                .replaceAll("%player%", player))));
+                            }
+                        });
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            logger.error("Could not do anything with this plugin message! (identifier: {}, message: {})",
+                    e.getIdentifier(), Arrays.toString(e.getData()), ex);
         }
     }
 }
