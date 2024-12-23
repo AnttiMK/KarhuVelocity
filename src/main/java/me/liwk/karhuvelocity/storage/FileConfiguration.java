@@ -52,9 +52,8 @@ public class FileConfiguration {
         try {
             mapper = ObjectMapper.factory().get(KarhuVelocityConfig.class);
         } catch (SerializationException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Failed to create ObjectMapper", e);
         }
-
     }
 
     public KarhuVelocityConfig get() {
