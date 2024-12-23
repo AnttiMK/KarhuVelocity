@@ -81,6 +81,10 @@ public class PluginMessageHandler {
                     String flagServer = cheater.get().getCurrentServer().get().getServerInfo().getName();
 
                     for (Player player : this.server.getAllPlayers()) {
+                        if (!player.hasPermission("karhu.bungee.alerts")) {
+                            continue;
+                        }
+
                         Optional<ServerConnection> currentServer = player.getCurrentServer();
                         currentServer.ifPresent(server -> {
                             if (ENABLED_ALERTS.contains(player.getUniqueId()) && !server.getServerInfo().getName().equals(flagServer)) {
