@@ -39,7 +39,7 @@ import java.nio.file.Path;
         id = "karhuvelocity",
         name = "KarhuVelocity",
         authors = {"LIWK", "AnttiMK"},
-        version = "1.1.0"
+        version = "1.2.0-SNAPSHOT"
 )
 public final class KarhuVelocity {
 
