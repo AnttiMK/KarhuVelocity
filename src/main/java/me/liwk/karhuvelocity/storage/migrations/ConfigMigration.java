@@ -12,6 +12,6 @@ public interface ConfigMigration {
     void migrate(CommentedConfigurationNode rootNode, Logger logger) throws IOException;
 
     default double configVersion(CommentedConfigurationNode rootNode) {
-        return rootNode.node("version").getDouble(0);
+        return rootNode.node("version").getInt(0);
     }
 }
