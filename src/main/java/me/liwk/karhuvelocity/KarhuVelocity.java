@@ -34,7 +34,7 @@ import org.slf4j.Logger;
 import java.nio.file.Path;
 
 @Getter
-@Plugin(id = "karhuvelocity", name = "KarhuVelocity", authors = {"LIWK"}, version = "1.1.0-SNAPSHOT")
+@Plugin(id = "karhuvelocity", name = "KarhuVelocity", authors = {"LIWK", "AnttiMK"}, version = "1.1.0-SNAPSHOT")
 public final class KarhuVelocity {
 
     private final ProxyServer server;
