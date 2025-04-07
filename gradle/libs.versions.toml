@@ -1,6 +1,6 @@
 [versions]
 velocity = "3.4.0-SNAPSHOT"
-lombok = "1.18.36"
+lombok = "1.18.38"
 
 [libraries]
 velocity-api = { module = "com.velocitypowered:velocity-api", version.ref = "velocity" }
